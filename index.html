@@ -58,26 +58,27 @@
         }
 
         .flipbook-container {
-            width: 100%;
-            max-width: 1000px;
+            width: fit-content;
+            -moz-width: fit-content;
+            max-width: 1040px;
             height: auto;
             margin: 20px auto;
             position: relative;
             background: var(--secondary-bg);
             box-shadow: 0 0 30px var(--shadow-color);
-            overflow: visible;
+            overflow: hidden;
             border-radius: 15px;
             padding: 20px;
             transition: all 0.3s ease;
         }
 
         #book {
-            width: 100%;
-            height: auto;
             min-height: 400px;
             background: var(--page-bg);
             border-radius: 10px;
             overflow: hidden;
+            position: relative;
+            z-index: 1;
         }
 
         .page {
@@ -375,12 +376,17 @@
                 border-radius: 12px;
                 box-shadow: 0 0 30px var(--shadow-color);
                 touch-action: none;
+                width: auto;
+                max-width: none;
+                overflow: hidden;
             }
 
             #book {
                 min-height: 350px;
                 border-radius: 8px;
                 touch-action: none;
+                position: relative;
+                z-index: 1;
             }
 
             .page {
@@ -631,35 +637,39 @@
                 <div class="page-number right">21</div>
             </div>
             <div class="page">
-                <img src="Artboard 15-min.jpg" alt="Page 22" style="width: 100%; height: 100%; object-fit: contain;">
+                <img src="Artboard 15.jpg" alt="Page 22" style="width: 100%; height: 100%; object-fit: contain;">
                 <div class="page-number left">22</div>
             </div>
             <div class="page">
-                <img src="Artboard 16-min.jpg" alt="Page 23" style="width: 100%; height: 100%; object-fit: contain;">
+                <img src="Artboard 16.jpg" alt="Page 23" style="width: 100%; height: 100%; object-fit: contain;">
                 <div class="page-number right">23</div>
             </div>
             <div class="page">
-                <img src="Artboard 17-min.jpg" alt="Page 24" style="width: 100%; height: 100%; object-fit: contain;">
+                <img src="Artboard 17.jpg" alt="Page 24" style="width: 100%; height: 100%; object-fit: contain;">
                 <div class="page-number left">24</div>
             </div>
             <div class="page">
-                <img src="Artboard 19-min.jpg" alt="Page 25" style="width: 100%; height: 100%; object-fit: contain;">
+                <img src="Artboard 19.jpg" alt="Page 25" style="width: 100%; height: 100%; object-fit: contain;">
                 <div class="page-number right">25</div>
             </div>
             <div class="page">
-                <img src="Artboard 20-min.jpg" alt="Page 26" style="width: 100%; height: 100%; object-fit: contain;">
+                <img src="Artboard 20.jpg" alt="Page 26" style="width: 100%; height: 100%; object-fit: contain;">
                 <div class="page-number left">26</div>
             </div>
             <div class="page">
-                <img src="Artboard 23-min.jpg" alt="Page 27" style="width: 100%; height: 100%; object-fit: contain;">
+                <img src="Artboard 23.jpg" alt="Page 27" style="width: 100%; height: 100%; object-fit: contain;">
                 <div class="page-number right">27</div>
             </div>
             <div class="page">
-                <img src="Artboard 24-min.jpg" alt="Page 28" style="width: 100%; height: 100%; object-fit: contain;">
+                <img src="Artboard 24.jpg" alt="Page 28" style="width: 100%; height: 100%; object-fit: contain;">
                 <div class="page-number left">28</div>
             </div>
             <div class="page">
-                <img src="Artboard 26-min.jpg" alt="Page 29" style="width: 100%; height: 100%; object-fit: contain;">
+                <img src="Artboard 26.jpg" alt="Page 29" style="width: 100%; height: 100%; object-fit: contain;">
+                <div class="page-number right">29</div>
+            </div>
+            <div class="page">
+                <img src="Artboard 28.jpg" alt="Page 29" style="width: 100%; height: 100%; object-fit: contain;">
                 <div class="page-number right">29</div>
             </div>
             <div class="page hard p2">
@@ -731,17 +741,38 @@
                 let touchStartTime = 0;
 
                 try {
-                    const bookWidth = Math.min(window.innerWidth - 40, 1000);
-                    const bookHeight = Math.min(window.innerHeight - 100, 700);
+                    const bodyHorizontalPadding = parseFloat($('body').css('padding-left')) + parseFloat($('body').css('padding-right'));
+                    const containerHorizontalPadding = parseFloat($('.flipbook-container').css('padding-left')) + parseFloat($('.flipbook-container').css('padding-right'));
+                    const bookAspectRatio = 1.45; 
+                    const maxBookContentWidth = 1000; 
+                    const minBookContentHeight = 700; 
+
+                    let bookDesiredWidth = Math.min(window.innerWidth - bodyHorizontalPadding - containerHorizontalPadding, maxBookContentWidth);
+                    let bookDesiredHeight = bookDesiredWidth / bookAspectRatio;
+
+                    // Ensure the book doesn't go below a certain height, adjusting width if necessary
+                    if (bookDesiredHeight < minBookContentHeight) {
+                        bookDesiredHeight = minBookContentHeight;
+                        bookDesiredWidth = bookDesiredHeight * bookAspectRatio;
+                        // Re-check against availableWidth and maxBookContentWidth if height constraint pushed width too far
+                        if (bookDesiredWidth > (window.innerWidth - bodyHorizontalPadding - containerHorizontalPadding)) {
+                            bookDesiredWidth = window.innerWidth - bodyHorizontalPadding - containerHorizontalPadding;
+                            bookDesiredHeight = bookDesiredWidth / bookAspectRatio;
+                        }
+                        if (bookDesiredWidth > maxBookContentWidth) {
+                             bookDesiredWidth = maxBookContentWidth;
+                             bookDesiredHeight = bookDesiredWidth / bookAspectRatio;
+                        }
+                    }
 
                     book.turn({
-                        width: bookWidth,
-                        height: bookHeight,
+                        width: bookDesiredWidth, // Pass the desired width to Turn.js
+                        height: bookDesiredHeight,
                         autoCenter: true,
                         display: 'double',
                         elevation: 50,
                         gradients: true,
-                        duration: 800, // Faster page turn for better responsiveness
+                        duration: 800,
                         acceleration: true,
                         when: {
                             turning: function(e, page, view) {
@@ -764,19 +795,13 @@
                                 isTurning = false;
                                 lastPage = page;
                                 localStorage.setItem('currentPage', page);
-                                
+
                                 // Update page turn indicators
                                 $('.page-turn-indicator.left').css('opacity', page > 1 ? 1 : 0);
                                 $('.page-turn-indicator.right').css('opacity', page < book.turn('pages') ? 1 : 0);
                             }
                         }
                     });
-
-                    // Restore saved page if any
-                    const savedPage = localStorage.getItem('currentPage');
-                    if (savedPage) {
-                        book.turn('page', parseInt(savedPage));
-                    }
 
                     // Enhanced touch handling
                     book.on('touchstart', function(e) {
@@ -855,12 +880,28 @@
                     $(window).on('resize', function() {
                         clearTimeout(resizeTimer);
                         resizeTimer = setTimeout(function() {
-                            const newWidth = Math.min(window.innerWidth - 40, 1000);
-                            const newHeight = Math.min(window.innerHeight - 100, 700);
+                            const bodyHorizontalPadding = parseFloat($('body').css('padding-left')) + parseFloat($('body').css('padding-right'));
+                            const containerHorizontalPadding = parseFloat($('.flipbook-container').css('padding-left')) + parseFloat($('.flipbook-container').css('padding-right'));
 
-                            book.turn('size', newWidth, newHeight);
+                            let newBookDesiredWidth = Math.min(window.innerWidth - bodyHorizontalPadding - containerHorizontalPadding, maxBookContentWidth);
+                            let newBookDesiredHeight = newBookDesiredWidth / bookAspectRatio;
+
+                            if (newBookDesiredHeight < minBookContentHeight) {
+                                newBookDesiredHeight = minBookContentHeight;
+                                newBookDesiredWidth = newBookDesiredHeight * bookAspectRatio;
+                                if (newBookDesiredWidth > (window.innerWidth - bodyHorizontalPadding - containerHorizontalPadding)) {
+                                    newBookDesiredWidth = window.innerWidth - bodyHorizontalPadding - containerHorizontalPadding;
+                                    newBookDesiredHeight = newBookDesiredWidth / bookAspectRatio;
+                                }
+                                if (newBookDesiredWidth > maxBookContentWidth) {
+                                     newBookDesiredWidth = maxBookContentWidth;
+                                     newBookDesiredHeight = newBookDesiredWidth / bookAspectRatio;
+                                }
+                            }
+
+                            book.turn('size', newBookDesiredWidth, newBookDesiredHeight);
+                            
                         }, 250);
-
                     });
 
                 } catch (e) {
