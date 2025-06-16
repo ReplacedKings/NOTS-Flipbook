@@ -669,7 +669,7 @@
                 <div class="page-number right">29</div>
             </div>
             <div class="page">
-                <img src="Artboard 27.jpg" alt="Page 29" style="width: 100%; height: 100%; object-fit: contain;">
+                <img src="Artboard 27.jpg" alt="Page 30" style="width: 100%; height: 100%; object-fit: contain;">
                 <div class="page-number right">30</div>
             </div>
             <div class="page hard p2">
@@ -771,17 +771,26 @@
                     if (autoTurnTimer) clearInterval(autoTurnTimer);
                     autoTurnTimer = setInterval(() => {
                         const currentTime = Date.now();
+                        // Only auto-flip if no interaction for 10 seconds
                         if (currentTime - lastInteractionTime >= AUTO_TURN_INTERVAL) {
                             const currentPage = book.turn('page');
                             const totalPages = book.turn('pages');
+                            
+                            // Play sound before turning
                             playFlipSound();
-                            if (currentPage >= totalPages - 1) {
+
+                            // Turn to next page or loop back to first
+                            if (currentPage >= totalPages) {
+                                // Force turn to first page
                                 book.turn('page', 1);
+                                console.log('Looping back to page 1');
                             } else {
+                                // Turn to next page
                                 book.turn('next');
+                                console.log('Turning to next page');
                             }
                         }
-                    }, 1000); 
+                    }, 1000); // Check every second
                 }
 
                 function updateLastInteraction() {
@@ -814,7 +823,7 @@
                     }
 
                     book.turn({
-                        width: bookDesiredWidth, // Pass the desired width to Turn.js
+                        width: bookDesiredWidth,
                         height: bookDesiredHeight,
                         autoCenter: true,
                         display: 'double',
@@ -831,6 +840,7 @@
                                 isTurning = false;
                                 lastPage = page;
                                 localStorage.setItem('currentPage', page);
+                                console.log('Turned to page:', page);
 
                                 // Update page turn indicators
                                 $('.page-turn-indicator.left').css('opacity', page > 1 ? 1 : 0);
@@ -951,10 +961,11 @@
                         }, 250);
                     });
 
-                    // Start auto-turning after initialization
+                    // Start auto-turning after initialization with a delay
                     setTimeout(() => {
+                        console.log('Starting auto-turn');
                         startAutoTurn();
-                    }, 1000); // Start after 1 second to ensure everything is loaded
+                    }, 2000); // Increased delay to ensure everything is loaded
 
                 } catch (e) {
                     console.error("Turn.js initialization error:", e);
