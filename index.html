@@ -675,9 +675,9 @@
             <div class="page hard p2">
                 <div class="back-cover-content">
                     <div class="back-cover-title">Thank You</div>
-                    <div class="back-cover-subtitle">We hope you enjoyed reading our interactive flipbook</div>
+                    <div class="back-cover-subtitle">Манай E-Book сонирхож үзсэнд талархаж байна.</div>
                     <div class="back-cover-decoration"></div>
-                    <div class="back-cover-subtitle">© 2024 All Rights Reserved</div>
+                    <div class="back-cover-subtitle">© 2025 All Rights Reserved</div>
                 </div>
             </div>
         </div>
@@ -692,15 +692,13 @@
             let soundEnabled = true;
             let touchStartX = 0;
             let touchStartY = 0;
-            const SWIPE_THRESHOLD = 30; // Reduced threshold for easier swiping
+            const SWIPE_THRESHOLD = 30; 
             let isFirstLoad = true;
             let touchTimeout;
             let autoTurnTimer = null;
             let manualInteractionTimer = null;
             const AUTO_TURN_INTERVAL = 10000; // 10 seconds
             const MANUAL_INTERACTION_PAUSE = 30000; // 30 seconds
-
-            // Preload images with progress tracking
             const images = book.find('img');
             let loadedImages = 0;
             const totalImages = images.length;
