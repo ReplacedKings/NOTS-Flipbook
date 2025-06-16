@@ -313,173 +313,177 @@
         </div>
     </div>
 
-    <script>
-        function initializeBook() {
-            const book = $("#book");
-            const flipSound = document.getElementById('flipSound');
-            let soundEnabled = true;
-            let touchStartX = 0;
-            let touchStartY = 0;
-            const SWIPE_THRESHOLD = 50;
+<script>
+    function initializeBook() {
+        const book = $("#book");
+        const flipSound = document.getElementById('flipSound');
+        let soundEnabled = true;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        const SWIPE_THRESHOLD = 50; // Minimum distance for swipe
 
-            // Preload images
-            const images = book.find('img');
-            let loadedImages = 0;
-            const totalImages = images.length;
+        // Preload images in the book before initializing turn.js
+        const images = book.find('img');
+        let loadedImages = 0;
+        const totalImages = images.length;
 
-            images.each(function() {
-                const img = new Image();
-                img.onload = function() {
-                    loadedImages++;
-                    if (loadedImages === totalImages) {
-                        $('.loading').fadeOut();
-                        initializeTurn();
-                    }
-                };
-                img.onerror = function() {
-                    console.error('Failed to load image:', this.src);
-                    loadedImages++;
-                    if (loadedImages === totalImages) {
-                        $('.loading').fadeOut();
-                        initializeTurn();
-                    }
-                };
-                img.src = $(this).attr('src');
-            });
-
-            function initializeTurn() {
-                let isTurning = false;
-
-                try {
-                    book.turn({
-                        width: Math.min(window.innerWidth - 40, 1000),
-                        height: Math.min(window.innerHeight - 100, 700),
-                        autoCenter: true,
-                        display: 'double',
-                        elevation: 50,
-                        gradients: true,
-                        duration: 1200,
-                        when: {
-                            turning: function(e, page, view) {
-                                isTurning = true;
-                                if (flipSound && soundEnabled) {
-                                    try {
-                                        flipSound.currentTime = 0;
-                                        const playPromise = flipSound.play();
-                                        if (playPromise !== undefined) {
-                                            playPromise.catch(error => {
-                                                console.log('Sound play failed:', error);
-                                            });
-                                        }
-                                    } catch (e) {
-                                        console.error('Sound error:', e);
-                                    }
-                                }
-                            },
-                            turned: function(e, page, view) {
-                                isTurning = false;
-                                localStorage.setItem('currentPage', page);
-                            }
-                        }
-                    });
-
-                    // Restore saved page after initialization
-                    const savedPage = localStorage.getItem('currentPage');
-                    if (savedPage) {
-                        book.turn('page', parseInt(savedPage));
-                    }
-
-                    // Touch event handlers
-                    book.on('touchstart', function(e) {
-                        touchStartX = e.originalEvent.touches[0].clientX;
-                        touchStartY = e.originalEvent.touches[0].clientY;
-                        
-                        // Add touch feedback
-                        const touchFeedback = $('<div class="touch-feedback"></div>');
-                        touchFeedback.css({
-                            left: touchStartX + 'px',
-                            top: touchStartY + 'px'
-                        });
-                        $('body').append(touchFeedback);
-                        setTimeout(() => touchFeedback.remove(), 300);
-                    });
-
-                    book.on('touchend', function(e) {
-                        if (isTurning) return;
-
-                        const touchEndX = e.originalEvent.changedTouches[0].clientX;
-                        const touchEndY = e.originalEvent.changedTouches[0].clientY;
-                        
-                        const deltaX = touchEndX - touchStartX;
-                        const deltaY = touchEndY - touchStartY;
-
-                        // Check if the swipe was primarily horizontal
-                        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SWIPE_THRESHOLD) {
-                            if (deltaX > 0) {
-                                book.turn('previous');
-                            } else {
-                                book.turn('next');
-                            }
-                        }
-                    });
-
-                    // Click navigation for desktop
-                    book.on('click', function(e) {
-                        if (isTurning || 'ontouchstart' in window) return;
-
-                        const bookWidth = book.width();
-                        const clickX = e.pageX - book.offset().left;
-
-                        if (clickX > bookWidth / 2) {
-                            book.turn('next');
-                        } else {
-                            book.turn('previous');
-                        }
-                    });
-
-                    // Keyboard navigation
-                    $(document).keydown(function(e) {
-                        if (isTurning) return;
-                        if (e.key === "ArrowRight") book.turn('next');
-                        else if (e.key === "ArrowLeft") book.turn('previous');
-                    });
-
-                    // Handle window resize
-                    let resizeTimer;
-                    $(window).on('resize', function() {
-                        clearTimeout(resizeTimer);
-                        resizeTimer = setTimeout(function() {
-                            const newWidth = Math.min(window.innerWidth - 40, 1000);
-                            const newHeight = Math.min(window.innerHeight - 100, 700);
-                            
-                            // Adjust page size for mobile
-                            if (window.innerWidth <= 768) {
-                                book.turn('size', newWidth, newHeight);
-                                book.turn('display', 'double');
-                            } else {
-                                book.turn('size', newWidth, newHeight);
-                            }
-                        }, 250);
-                    });
-
-                    // Enable sound after first user interaction
-                    $(document).one('click touchstart', function() {
-                        if (flipSound) {
-                            flipSound.play().catch(e => console.log('Initial sound play failed:', e));
-                        }
-                    });
-
-                } catch (e) {
-                    console.error("Turn.js initialization error:", e);
-                    alert('Error initializing the flipbook. Please refresh the page and try again.');
+        images.each(function() {
+            const img = new Image();
+            img.onload = function() {
+                loadedImages++;
+                if (loadedImages === totalImages) {
+                    $('.loading').fadeOut();
+                    initializeTurn();
                 }
+            };
+            img.onerror = function() {
+                console.error('Failed to load image:', this.src);
+                loadedImages++;
+                if (loadedImages === totalImages) {
+                    $('.loading').fadeOut();
+                    initializeTurn();
+                }
+            };
+            img.src = $(this).attr('src');
+        });
+
+        // Initialize the turn.js flipbook
+        function initializeTurn() {
+            let isTurning = false;
+
+            try {
+                book.turn({
+                    width: Math.min(window.innerWidth - 40, 1000),
+                    height: Math.min(window.innerHeight - 100, 700),
+                    autoCenter: true,
+                    display: window.innerWidth <= 768 ? 'single' : 'double', // Use single page on small screens
+                    elevation: 50,
+                    gradients: true,
+                    duration: 1200,
+                    when: {
+                        turning: function(e, page, view) {
+                            isTurning = true;
+                            if (flipSound && soundEnabled) {
+                                try {
+                                    flipSound.currentTime = 0;
+                                    const playPromise = flipSound.play();
+                                    if (playPromise !== undefined) {
+                                        playPromise.catch(error => {
+                                            console.log('Sound play failed:', error);
+                                        });
+                                    }
+                                } catch (e) {
+                                    console.error('Sound error:', e);
+                                }
+                            }
+                        },
+                        turned: function(e, page, view) {
+                            isTurning = false;
+                            localStorage.setItem('currentPage', page);
+                        }
+                    }
+                });
+
+                // Restore saved page if any
+                const savedPage = localStorage.getItem('currentPage');
+                if (savedPage) {
+                    book.turn('page', parseInt(savedPage));
+                }
+
+                // Touch start - track initial coordinates and give feedback
+                book.on('touchstart', function(e) {
+                    const touch = e.originalEvent.touches[0];
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+
+                    // Optional: visual feedback on touch
+                    const touchFeedback = $('<div class="touch-feedback"></div>');
+                    touchFeedback.css({
+                        left: touchStartX + 'px',
+                        top: touchStartY + 'px'
+                    });
+                    $('body').append(touchFeedback);
+                    setTimeout(() => touchFeedback.remove(), 300);
+                });
+
+                // Touch end - detect swipe direction and turn pages
+                book.on('touchend', function(e) {
+                    if (isTurning) return;
+
+                    const touch = e.originalEvent.changedTouches[0];
+                    const touchEndX = touch.clientX;
+                    const touchEndY = touch.clientY;
+
+                    const deltaX = touchEndX - touchStartX;
+                    const deltaY = touchEndY - touchStartY;
+
+                    // Horizontal swipe detection
+                    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+                        if (deltaX > 0) {
+                            book.turn('previous');
+                        } else {
+                            book.turn('next');
+                        }
+                    }
+                });
+
+                // Click navigation (desktop only, disable on touch devices)
+                book.on('click', function(e) {
+                    if (isTurning || 'ontouchstart' in window) return;
+
+                    const bookWidth = book.width();
+                    const clickX = e.pageX - book.offset().left;
+
+                    if (clickX > bookWidth / 2) {
+                        book.turn('next');
+                    } else {
+                        book.turn('previous');
+                    }
+                });
+
+                // Keyboard arrow navigation for accessibility
+                $(document).keydown(function(e) {
+                    if (isTurning) return;
+                    if (e.key === "ArrowRight") book.turn('next');
+                    else if (e.key === "ArrowLeft") book.turn('previous');
+                });
+
+                // Handle window resize: adjust size and display mode
+                let resizeTimer;
+                $(window).on('resize', function() {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(function() {
+                        const newWidth = Math.min(window.innerWidth - 40, 1000);
+                        const newHeight = Math.min(window.innerHeight - 100, 700);
+                        book.turn('size', newWidth, newHeight);
+
+                        // Switch to single page on smaller screens
+                        if (window.innerWidth <= 768) {
+                            book.turn('display', 'single');
+                        } else {
+                            book.turn('display', 'double');
+                        }
+                    }, 250);
+                });
+
+                // Unlock sound playback on first interaction (required by some browsers)
+                $(document).one('click touchstart', function() {
+                    if (flipSound) {
+                        flipSound.play().catch(e => console.log('Initial sound play failed:', e));
+                    }
+                });
+
+            } catch (e) {
+                console.error("Turn.js initialization error:", e);
+                alert('Error initializing the flipbook. Please refresh the page and try again.');
             }
         }
+    }
 
-        // Initialize on window load
-        $(window).on('load', function() {
-            initializeBook();
-        });
-    </script>
+    // Initialize on window load
+    $(window).on('load', function() {
+        initializeBook();
+    });
+</script>
 </body>
 </html>
