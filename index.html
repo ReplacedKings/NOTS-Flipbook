@@ -771,22 +771,17 @@
                     if (autoTurnTimer) clearInterval(autoTurnTimer);
                     autoTurnTimer = setInterval(() => {
                         const currentTime = Date.now();
-                        // Only auto-flip if no interaction for 10 seconds
                         if (currentTime - lastInteractionTime >= AUTO_TURN_INTERVAL) {
                             const currentPage = book.turn('page');
                             const totalPages = book.turn('pages');
-                            
-                            // Play sound before turning
                             playFlipSound();
-
-                            // Turn to next page or loop back to first
-                            if (currentPage >= totalPages) {
+                            if (currentPage >= totalPages - 1) {
                                 book.turn('page', 1);
                             } else {
                                 book.turn('next');
                             }
                         }
-                    }, 1000); // Check every second
+                    }, 1000); 
                 }
 
                 function updateLastInteraction() {
