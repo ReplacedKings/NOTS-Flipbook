@@ -675,9 +675,9 @@
             <div class="page hard p2">
                 <div class="back-cover-content">
                     <div class="back-cover-title">Thank You</div>
-                    <div class="back-cover-subtitle">Манай E-Book сонирхож үзсэнд талархаж байна.</div>
+                    <div class="back-cover-subtitle">We hope you enjoyed reading our interactive flipbook</div>
                     <div class="back-cover-decoration"></div>
-                    <div class="back-cover-subtitle">© 2025 All Rights Reserved</div>
+                    <div class="back-cover-subtitle">© 2024 All Rights Reserved</div>
                 </div>
             </div>
         </div>
@@ -692,13 +692,35 @@
             let soundEnabled = true;
             let touchStartX = 0;
             let touchStartY = 0;
-            const SWIPE_THRESHOLD = 30; 
+            const SWIPE_THRESHOLD = 30;
             let isFirstLoad = true;
             let touchTimeout;
             let autoTurnTimer = null;
-            let manualInteractionTimer = null;
             const AUTO_TURN_INTERVAL = 10000; // 10 seconds
-            const MANUAL_INTERACTION_PAUSE = 30000; // 30 seconds
+
+            // Function to play sound with fallback
+            function playFlipSound() {
+                if (flipSound && soundEnabled) {
+                    try {
+                        flipSound.currentTime = 0;
+                        const playPromise = flipSound.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(error => {
+                                console.log('Sound play failed:', error);
+                                // If sound fails to play, continue with the page turn
+                                return true;
+                            });
+                        }
+                    } catch (e) {
+                        console.error('Sound error:', e);
+                        // If sound fails to play, continue with the page turn
+                        return true;
+                    }
+                }
+                return true;
+            }
+
+            // Preload images with progress tracking
             const images = book.find('img');
             let loadedImages = 0;
             const totalImages = images.length;
@@ -755,19 +777,7 @@
                             const totalPages = book.turn('pages');
                             
                             // Play sound before turning
-                            if (flipSound && soundEnabled) {
-                                try {
-                                    flipSound.currentTime = 0;
-                                    const playPromise = flipSound.play();
-                                    if (playPromise !== undefined) {
-                                        playPromise.catch(error => {
-                                            console.log('Sound play failed:', error);
-                                        });
-                                    }
-                                } catch (e) {
-                                    console.error('Sound error:', e);
-                                }
-                            }
+                            playFlipSound();
 
                             // Turn to next page or loop back to first
                             if (currentPage >= totalPages) {
@@ -820,19 +830,7 @@
                         when: {
                             turning: function(e, page, view) {
                                 isTurning = true;
-                                if (flipSound && soundEnabled) {
-                                    try {
-                                        flipSound.currentTime = 0;
-                                        const playPromise = flipSound.play();
-                                        if (playPromise !== undefined) {
-                                            playPromise.catch(error => {
-                                                console.log('Sound play failed:', error);
-                                            });
-                                        }
-                                    } catch (e) {
-                                        console.error('Sound error:', e);
-                                    }
-                                }
+                                playFlipSound();
                             },
                             turned: function(e, page, view) {
                                 isTurning = false;
@@ -959,7 +957,9 @@
                     });
 
                     // Start auto-turning after initialization
-                    startAutoTurn();
+                    setTimeout(() => {
+                        startAutoTurn();
+                    }, 1000); // Start after 1 second to ensure everything is loaded
 
                 } catch (e) {
                     console.error("Turn.js initialization error:", e);
