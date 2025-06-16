@@ -670,7 +670,7 @@
             </div>
             <div class="page">
                 <img src="Artboard 27.jpg" alt="Page 29" style="width: 100%; height: 100%; object-fit: contain;">
-                <div class="page-number right">29</div>
+                <div class="page-number right">30</div>
             </div>
             <div class="page hard p2">
                 <div class="back-cover-content">
@@ -695,6 +695,10 @@
             const SWIPE_THRESHOLD = 30; // Reduced threshold for easier swiping
             let isFirstLoad = true;
             let touchTimeout;
+            let autoTurnTimer = null;
+            let manualInteractionTimer = null;
+            const AUTO_TURN_INTERVAL = 10000; // 10 seconds
+            const MANUAL_INTERACTION_PAUSE = 30000; // 30 seconds
 
             // Preload images with progress tracking
             const images = book.find('img');
@@ -739,6 +743,47 @@
                 let isTurning = false;
                 let lastPage = 1;
                 let touchStartTime = 0;
+                let lastInteractionTime = Date.now();
+                let autoTurnTimer = null;
+                const AUTO_TURN_INTERVAL = 10000; // 10 seconds
+
+                function startAutoTurn() {
+                    if (autoTurnTimer) clearInterval(autoTurnTimer);
+                    autoTurnTimer = setInterval(() => {
+                        const currentTime = Date.now();
+                        // Only auto-flip if no interaction for 10 seconds
+                        if (currentTime - lastInteractionTime >= AUTO_TURN_INTERVAL) {
+                            const currentPage = book.turn('page');
+                            const totalPages = book.turn('pages');
+                            
+                            // Play sound before turning
+                            if (flipSound && soundEnabled) {
+                                try {
+                                    flipSound.currentTime = 0;
+                                    const playPromise = flipSound.play();
+                                    if (playPromise !== undefined) {
+                                        playPromise.catch(error => {
+                                            console.log('Sound play failed:', error);
+                                        });
+                                    }
+                                } catch (e) {
+                                    console.error('Sound error:', e);
+                                }
+                            }
+
+                            // Turn to next page or loop back to first
+                            if (currentPage >= totalPages) {
+                                book.turn('page', 1);
+                            } else {
+                                book.turn('next');
+                            }
+                        }
+                    }, 1000); // Check every second
+                }
+
+                function updateLastInteraction() {
+                    lastInteractionTime = Date.now();
+                }
 
                 try {
                     const bodyHorizontalPadding = parseFloat($('body').css('padding-left')) + parseFloat($('body').css('padding-right'));
@@ -799,6 +844,9 @@
                                 // Update page turn indicators
                                 $('.page-turn-indicator.left').css('opacity', page > 1 ? 1 : 0);
                                 $('.page-turn-indicator.right').css('opacity', page < book.turn('pages') ? 1 : 0);
+                                
+                                // Update last interaction time
+                                updateLastInteraction();
                             }
                         }
                     });
@@ -866,13 +914,21 @@
                         } else {
                             book.turn('previous');
                         }
+                        
+                        updateLastInteraction();
                     });
 
                     // Keyboard navigation
                     $(document).keydown(function(e) {
                         if (isTurning) return;
-                        if (e.key === "ArrowRight") book.turn('next');
-                        else if (e.key === "ArrowLeft") book.turn('previous');
+                        if (e.key === "ArrowRight") {
+                            book.turn('next');
+                            updateLastInteraction();
+                        }
+                        else if (e.key === "ArrowLeft") {
+                            book.turn('previous');
+                            updateLastInteraction();
+                        }
                     });
 
                     // Handle window resize
@@ -903,6 +959,9 @@
                             
                         }, 250);
                     });
+
+                    // Start auto-turning after initialization
+                    startAutoTurn();
 
                 } catch (e) {
                     console.error("Turn.js initialization error:", e);
