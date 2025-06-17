@@ -697,9 +697,11 @@
             let touchTimeout;
             let autoTurnTimer = null;
             const AUTO_TURN_INTERVAL = 10000; // 10 seconds for desktop
-            const MOBILE_AUTO_TURN_INTERVAL = 15000; // 15 seconds for mobile
+            const MOBILE_AUTO_TURN_INTERVAL = 10000; // Changed to 10 seconds for mobile
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             const currentAutoTurnInterval = isMobile ? MOBILE_AUTO_TURN_INTERVAL : AUTO_TURN_INTERVAL;
+            let isUserInteracting = false;
+            let touchInteractionTimeout;
 
             // Function to play sound with fallback
             function playFlipSound() {
@@ -767,8 +769,15 @@
                 let lastPage = 1;
                 let touchStartTime = 0;
                 let lastInteractionTime = Date.now();
-                let autoTurnTimer = null;
-                const AUTO_TURN_INTERVAL = 10000; // 10 seconds
+
+                // Function to handle user interaction
+                function handleUserInteraction() {
+                    isUserInteracting = true;
+                    clearTimeout(touchInteractionTimeout);
+                    touchInteractionTimeout = setTimeout(() => {
+                        isUserInteracting = false;
+                    }, 2000); // Reset after 2 seconds of no interaction
+                }
 
                 function startAutoTurn() {
                     if (autoTurnTimer) clearInterval(autoTurnTimer);
@@ -793,7 +802,7 @@
                                 console.log('Turning to next page');
                             }
                         }
-                    }, 1000); // Check every second
+                    }, isMobile ? 10000 : 1000); // Use 10 second interval for mobile, 1 second for desktop
                 }
 
                 function updateLastInteraction() {
@@ -858,6 +867,7 @@
                     // Enhanced touch handling
                     book.on('touchstart', function(e) {
                         if (isTurning) return;
+                        handleUserInteraction();
                         
                         const touch = e.originalEvent.touches[0];
                         touchStartX = touch.clientX;
@@ -879,11 +889,13 @@
 
                     book.on('touchmove', function(e) {
                         if (isTurning) return;
+                        handleUserInteraction();
                         e.preventDefault(); // Prevent scrolling while swiping
                     });
 
                     book.on('touchend', function(e) {
                         if (isTurning) return;
+                        handleUserInteraction();
 
                         const touch = e.originalEvent.changedTouches[0];
                         const touchEndX = touch.clientX;
@@ -962,11 +974,14 @@
                             book.turn('size', newBookDesiredWidth, newBookDesiredHeight);
                             
                         }, 250);
-                    })
+                    });
+
+                    // Start auto-turning after initialization with a delay
                     setTimeout(() => {
                         console.log('Starting auto-turn');
                         startAutoTurn();
-                    }, 2000); 
+                    }, 2000); // Increased delay to ensure everything is loaded
+
                 } catch (e) {
                     console.error("Turn.js initialization error:", e);
                     alert('Error initializing the flipbook. Please refresh the page and try again.');
