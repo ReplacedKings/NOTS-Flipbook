@@ -7,14 +7,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Interactive Flipbook</title>
-    <!-- jQuery (with fallback) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         if (typeof jQuery === 'undefined') {
             document.write('<script src="js/jquery-3.6.0.min.js"><\/script>');
         }
     </script>
-    <!-- Turn.js (with fallback) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
     <script>
         if (typeof $.fn.turn === 'undefined') {
@@ -32,7 +30,6 @@
             --shadow-color: rgba(0,0,0,0.7);
             --loading-bg: rgba(0,0,0,0.8);
         }
-
         * {
             margin: 0;
             padding: 0;
@@ -115,8 +112,6 @@
             background: var(--primary-bg);
             color: var(--text-color);
         }
-
-        /* Enhanced back cover styles */
         .hard.p2 {
             background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
             position: relative;
@@ -270,8 +265,6 @@
             height: 110px;
             animation-delay: -2s;
         }
-
-        /* Add subtle shine effect */
         .hard.p2::before {
             content: '';
             position: absolute;
@@ -361,8 +354,6 @@
         @keyframes loading-spinner {
             to { transform: rotate(360deg); }
         }
-
-        /* Mobile-specific styles */
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -485,8 +476,6 @@
                 opacity: 0;
             }
         }
-
-        /* Page turn indicators */
         .page-turn-indicator {
             position: absolute;
             top: 50%;
@@ -548,7 +537,7 @@
 </head>
 <body>
     <div class="loading">Loading Flipbook</div>
-    <div class="mobile-touch-hint">Swipe to turn pages</div>
+    <div class="mobile-touch-hint">Хуудас эргүүлэхийн тулд шударна уу</div>
 
     <div class="flipbook-container fade-in">
         <div id="book">
@@ -675,9 +664,9 @@
             <div class="page hard p2">
                 <div class="back-cover-content">
                     <div class="back-cover-title">Thank You</div>
-                    <div class="back-cover-subtitle">We hope you enjoyed reading our interactive flipbook</div>
+                    <div class="back-cover-subtitle">Та манай интерактив флипбүүкийг уншсан гэдэгт найдаж байна</div>
                     <div class="back-cover-decoration"></div>
-                    <div class="back-cover-subtitle">© 2024 All Rights Reserved</div>
+                    <div class="back-cover-subtitle">NOTS LLC© 2025 All Rights Reserved</div>
                 </div>
             </div>
         </div>
@@ -696,14 +685,12 @@
             let isFirstLoad = true;
             let touchTimeout;
             let autoTurnTimer = null;
-            const AUTO_TURN_INTERVAL = 10000; // 10 seconds for desktop
-            const MOBILE_AUTO_TURN_INTERVAL = 10000; // Changed to 10 seconds for mobile
+            const AUTO_TURN_INTERVAL = 10000; 
+            const MOBILE_AUTO_TURN_INTERVAL = 10000; 
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             const currentAutoTurnInterval = isMobile ? MOBILE_AUTO_TURN_INTERVAL : AUTO_TURN_INTERVAL;
             let isUserInteracting = false;
             let touchInteractionTimeout;
-
-            // Function to play sound with fallback
             function playFlipSound() {
                 if (flipSound && soundEnabled) {
                     try {
@@ -712,20 +699,16 @@
                         if (playPromise !== undefined) {
                             playPromise.catch(error => {
                                 console.log('Sound play failed:', error);
-                                // If sound fails to play, continue with the page turn
                                 return true;
                             });
                         }
                     } catch (e) {
                         console.error('Sound error:', e);
-                        // If sound fails to play, continue with the page turn
                         return true;
                     }
                 }
                 return true;
             }
-
-            // Preload images with progress tracking
             const images = book.find('img');
             let loadedImages = 0;
             const totalImages = images.length;
@@ -769,40 +752,31 @@
                 let lastPage = 1;
                 let touchStartTime = 0;
                 let lastInteractionTime = Date.now();
-
-                // Function to handle user interaction
                 function handleUserInteraction() {
                     isUserInteracting = true;
                     clearTimeout(touchInteractionTimeout);
                     touchInteractionTimeout = setTimeout(() => {
                         isUserInteracting = false;
-                    }, 2000); // Reset after 2 seconds of no interaction
+                    }, 2000); 
                 }
 
                 function startAutoTurn() {
                     if (autoTurnTimer) clearInterval(autoTurnTimer);
                     autoTurnTimer = setInterval(() => {
                         const currentTime = Date.now();
-                        // Only auto-flip if no interaction for the specified interval
                         if (currentTime - lastInteractionTime >= currentAutoTurnInterval) {
                             const currentPage = book.turn('page');
                             const totalPages = book.turn('pages');
-                            
-                            // Play sound before turning
                             playFlipSound();
-
-                            // Turn to next page or loop back to first
                             if (currentPage >= totalPages - 1) {
-                                // Force turn to first page immediately
                                 book.turn('page', 1);
                                 console.log('Looping back to page 1');
                             } else {
-                                // Turn to next page
                                 book.turn('next');
                                 console.log('Turning to next page');
                             }
                         }
-                    }, isMobile ? 10000 : 1000); // Use 10 second interval for mobile, 1 second for desktop
+                    }, isMobile ? 10000 : 1000); 
                 }
 
                 function updateLastInteraction() {
@@ -818,12 +792,10 @@
 
                     let bookDesiredWidth = Math.min(window.innerWidth - bodyHorizontalPadding - containerHorizontalPadding, maxBookContentWidth);
                     let bookDesiredHeight = bookDesiredWidth / bookAspectRatio;
-
-                    // Ensure the book doesn't go below a certain height, adjusting width if necessary
+                    
                     if (bookDesiredHeight < minBookContentHeight) {
                         bookDesiredHeight = minBookContentHeight;
                         bookDesiredWidth = bookDesiredHeight * bookAspectRatio;
-                        // Re-check against availableWidth and maxBookContentWidth if height constraint pushed width too far
                         if (bookDesiredWidth > (window.innerWidth - bodyHorizontalPadding - containerHorizontalPadding)) {
                             bookDesiredWidth = window.innerWidth - bodyHorizontalPadding - containerHorizontalPadding;
                             bookDesiredHeight = bookDesiredWidth / bookAspectRatio;
@@ -853,18 +825,12 @@
                                 lastPage = page;
                                 localStorage.setItem('currentPage', page);
                                 console.log('Turned to page:', page);
-
-                                // Update page turn indicators
                                 $('.page-turn-indicator.left').css('opacity', page > 1 ? 1 : 0);
                                 $('.page-turn-indicator.right').css('opacity', page < book.turn('pages') ? 1 : 0);
-                                
-                                // Update last interaction time
                                 updateLastInteraction();
                             }
                         }
                     });
-
-                    // Enhanced touch handling
                     book.on('touchstart', function(e) {
                         if (isTurning) return;
                         handleUserInteraction();
@@ -874,7 +840,6 @@
                         touchStartY = touch.clientY;
                         touchStartTime = Date.now();
 
-                        // Visual feedback on touch
                         const touchFeedback = $('<div class="touch-feedback"></div>');
                         touchFeedback.css({
                             left: touchStartX + 'px',
@@ -882,15 +847,13 @@
                         });
                         $('body').append(touchFeedback);
                         setTimeout(() => touchFeedback.remove(), 400);
-
-                        // Clear any existing timeout
                         clearTimeout(touchTimeout);
                     });
 
                     book.on('touchmove', function(e) {
                         if (isTurning) return;
                         handleUserInteraction();
-                        e.preventDefault(); // Prevent scrolling while swiping
+                        e.preventDefault(); 
                     });
 
                     book.on('touchend', function(e) {
@@ -917,8 +880,7 @@
                             }
                         }
                     });
-
-                    // Click navigation (desktop only)
+                    //Desktop Navigation focus on the arrow, Made sure to check for problems
                     book.on('click', function(e) {
                         if (isTurning || 'ontouchstart' in window) return;
 
@@ -934,7 +896,7 @@
                         updateLastInteraction();
                     });
 
-                    // Keyboard navigation
+                    // Keyboard navigation used for all purpose not mobile, might cause some issues, check it again
                     $(document).keydown(function(e) {
                         if (isTurning) return;
                         if (e.key === "ArrowRight") {
@@ -946,8 +908,6 @@
                             updateLastInteraction();
                         }
                     });
-
-                    // Handle window resize
                     let resizeTimer;
                     $(window).on('resize', function() {
                         clearTimeout(resizeTimer);
@@ -975,12 +935,10 @@
                             
                         }, 250);
                     });
-
-                    // Start auto-turning after initialization with a delay
                     setTimeout(() => {
                         console.log('Starting auto-turn');
                         startAutoTurn();
-                    }, 2000); // Increased delay to ensure everything is loaded
+                    }, 2000); 
 
                 } catch (e) {
                     console.error("Turn.js initialization error:", e);
@@ -988,8 +946,6 @@
                 }
             }
         }
-
-        // Initialize on window load
         $(window).on('load', function() {
             initializeBook();
         });
