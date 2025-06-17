@@ -20,6 +20,7 @@
         }
     </script>
     <audio id="flipSound" src="page-flip-47177.mp3" preload="auto"></audio>
+    <audio id="bgMusic" preload="auto" loop></audio>
     <style>
         :root {
             --primary-bg: #1a1a1a;
@@ -113,6 +114,8 @@
             background: var(--primary-bg);
             color: var(--text-color);
         }
+
+        /* Enhanced back cover styles */
         .hard.p2 {
             background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
             position: relative;
@@ -266,7 +269,8 @@
             height: 110px;
             animation-delay: -2s;
         }
-        
+
+        /* Add subtle shine effect */
         .hard.p2::before {
             content: '';
             position: absolute;
@@ -357,7 +361,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Mobile-specific styles */
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -416,6 +419,7 @@
                 right: 15px;
             }
 
+            /* Mobile touch indicators */
             .mobile-touch-hint {
                 position: fixed;
                 bottom: 20px;
@@ -454,6 +458,7 @@
         .book-closed, .book-open, .open-book-button {
             display: none;
         }
+
         .touch-feedback {
             position: fixed;
             pointer-events: none;
@@ -476,6 +481,8 @@
                 opacity: 0;
             }
         }
+
+        /* Page turn indicators */
         .page-turn-indicator {
             position: absolute;
             top: 50%;
@@ -523,6 +530,8 @@
         #book:hover .page-turn-indicator {
             opacity: 1;
         }
+
+        /* Loading animation */
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -531,11 +540,55 @@
         .fade-in {
             animation: fadeIn 0.5s ease-out forwards;
         }
+
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .music-control:hover {
+            transform: scale(1.1);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .music-control::before {
+            content: '♪';
+            color: white;
+            font-size: 20px;
+        }
+
+        .music-control.muted::before {
+            content: '♫';
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .music-control {
+                bottom: 15px;
+                right: 15px;
+                width: 35px;
+                height: 35px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="loading">Loading Flipbook</div>
-    <div class="mobile-touch-hint">Хуудсуудыг эргүүлэхийн тулд шударна уу</div>
+    <div class="mobile-touch-hint">Swipe to turn pages</div>
+    <div class="music-control" title="Toggle Background Music"></div>
 
     <div class="flipbook-container fade-in">
         <div id="book">
@@ -662,9 +715,9 @@
             <div class="page hard p2">
                 <div class="back-cover-content">
                     <div class="back-cover-title">Thank You</div>
-                    <div class="back-cover-subtitle">Та манай интерактив флипбүүкийг уншсан гэдэгт найдаж байна</div>
+                    <div class="back-cover-subtitle">We hope you enjoyed reading our interactive flipbook</div>
                     <div class="back-cover-decoration"></div>
-                    <div class="back-cover-subtitle">NOTS LLC© 2025 All Rights Reserved</div>
+                    <div class="back-cover-subtitle">© 2024 All Rights Reserved</div>
                 </div>
             </div>
         </div>
@@ -676,19 +729,65 @@
         function initializeBook() {
             const book = $("#book");
             const flipSound = document.getElementById('flipSound');
+            const bgMusic = document.getElementById('bgMusic');
             let soundEnabled = true;
+            let bgMusicEnabled = true;
             let touchStartX = 0;
             let touchStartY = 0;
             const SWIPE_THRESHOLD = 30;
             let isFirstLoad = true;
             let touchTimeout;
             let autoTurnTimer = null;
-            const AUTO_TURN_INTERVAL = 10000; 
-            const MOBILE_AUTO_TURN_INTERVAL = 10000; 
+            const AUTO_TURN_INTERVAL = 10000; // 10 seconds for desktop
+            const MOBILE_AUTO_TURN_INTERVAL = 10000; // 10 seconds for mobile
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             const currentAutoTurnInterval = isMobile ? MOBILE_AUTO_TURN_INTERVAL : AUTO_TURN_INTERVAL;
             let isUserInteracting = false;
             let touchInteractionTimeout;
+
+            bgMusic.volume = 0.2; //Background music
+            $('.music-control').on('click', function() {
+                if (bgMusicEnabled) {
+                    bgMusic.pause();
+                    $(this).addClass('muted');
+                } else {
+                    try {
+                        if (!bgMusic.src) {
+                            bgMusic.src = "The Nature Is (Main).mp3";
+                        }
+                        bgMusic.play().catch(function(error) {
+                            console.log("Background music play failed:", error);
+                            $(this).addClass('muted');
+                            bgMusicEnabled = false;
+                        });
+                    } catch (error) {
+                        console.log("Background music error:", error);
+                        $(this).addClass('muted');
+                        bgMusicEnabled = false;
+                    }
+                }
+                bgMusicEnabled = !bgMusicEnabled;
+            });
+            function startBackgroundMusic() {
+                if (bgMusicEnabled) {
+                    try {
+                        if (!bgMusic.src) {
+                            bgMusic.src = "The Nature Is (Main).mp3";
+                        }
+                        bgMusic.play().catch(function(error) {
+                            console.log("Background music autoplay failed:", error);
+                            $('.music-control').addClass('muted');
+                            bgMusicEnabled = false;
+                        });
+                    } catch (error) {
+                        console.log("Background music error:", error);
+                        $('.music-control').addClass('muted');
+                        bgMusicEnabled = false;
+                    }
+                }
+            }
+            document.addEventListener('click', startBackgroundMusic, { once: true });
+            document.addEventListener('touchstart', startBackgroundMusic, { once: true });
             function playFlipSound() {
                 if (flipSound && soundEnabled) {
                     try {
@@ -774,7 +873,7 @@
                                 console.log('Turning to next page');
                             }
                         }
-                    }, isMobile ? 10000 : 1000); // Use 10 second interval for mobile, 1 second for interval 
+                    }, isMobile ? 10000 : 1000); // Use 10 second interval for mobile, 1 second for desktop
                 }
 
                 function updateLastInteraction() {
@@ -787,6 +886,7 @@
                     const bookAspectRatio = 1.45; 
                     const maxBookContentWidth = 1000; 
                     const minBookContentHeight = 700; 
+
                     let bookDesiredWidth = Math.min(window.innerWidth - bodyHorizontalPadding - containerHorizontalPadding, maxBookContentWidth);
                     let bookDesiredHeight = bookDesiredWidth / bookAspectRatio;
                     if (bookDesiredHeight < minBookContentHeight) {
@@ -827,7 +927,6 @@
                             }
                         }
                     });
-
                     book.on('touchstart', function(e) {
                         if (isTurning) return;
                         handleUserInteraction();
@@ -851,6 +950,7 @@
                     book.on('touchmove', function(e) {
                         if (isTurning) return;
                         handleUserInteraction();
+
                         if (e.originalEvent.touches.length === 1) {
                             e.preventDefault();
                         }
@@ -864,6 +964,7 @@
                         const touchEndX = touch.clientX;
                         const touchEndY = touch.clientY;
                         const touchEndTime = Date.now();
+
                         const deltaX = touchEndX - touchStartX;
                         const deltaY = touchEndY - touchStartY;
                         const touchDuration = touchEndTime - touchStartTime;
@@ -892,6 +993,7 @@
                         updateLastInteraction();
                     });
 
+                    // Keyboard navigation
                     $(document).keydown(function(e) {
                         if (isTurning) return;
                         if (e.key === "ArrowRight") {
@@ -903,6 +1005,8 @@
                             updateLastInteraction();
                         }
                     });
+
+                    // Handle window resize
                     let resizeTimer;
                     $(window).on('resize', function() {
                         clearTimeout(resizeTimer);
@@ -930,10 +1034,12 @@
                             
                         }, 250);
                     });
+
+                    // Start auto-turning after initialization with a delay
                     setTimeout(() => {
                         console.log('Starting auto-turn');
                         startAutoTurn();
-                    }, 2000); 
+                    }, 2000); // Increased delay to ensure everything is loaded
 
                 } catch (e) {
                     console.error("Turn.js initialization error:", e);
