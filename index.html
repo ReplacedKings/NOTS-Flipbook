@@ -672,6 +672,14 @@
                 <img src="Artboard 27.jpg" alt="Page 29" style="width: 100%; height: 100%; object-fit: contain;">
                 <div class="page-number right">30</div>
             </div>
+            <div class="page hard p2">
+                <div class="back-cover-content">
+                    <div class="back-cover-title">Thank You</div>
+                    <div class="back-cover-subtitle">We hope you enjoyed reading our interactive flipbook</div>
+                    <div class="back-cover-decoration"></div>
+                    <div class="back-cover-subtitle">© 2024 All Rights Reserved</div>
+                </div>
+            </div>
         </div>
         <div class="page-turn-indicator left"></div>
         <div class="page-turn-indicator right"></div>
@@ -775,12 +783,10 @@
                             playFlipSound();
 
                             // Turn to next page or loop back to first
-                            if (currentPage >= totalPages - 1) { // Check if we're at or past the second-to-last page
-                                // Force turn to first page with a slight delay to ensure proper animation
-                                setTimeout(() => {
-                                    book.turn('page', 1);
-                                    console.log('Looping back to page 1');
-                                }, 100);
+                            if (currentPage >= totalPages - 1) {
+                                // Force turn to first page immediately
+                                book.turn('page', 1);
+                                console.log('Looping back to page 1');
                             } else {
                                 // Turn to next page
                                 book.turn('next');
@@ -845,14 +851,6 @@
                                 
                                 // Update last interaction time
                                 updateLastInteraction();
-
-                                // Check if we need to loop back to page 1
-                                if (page >= book.turn('pages')) {
-                                    setTimeout(() => {
-                                        book.turn('page', 1);
-                                        console.log('Looping back to page 1 from turned event');
-                                    }, 100);
-                                }
                             }
                         }
                     });
@@ -964,14 +962,11 @@
                             book.turn('size', newBookDesiredWidth, newBookDesiredHeight);
                             
                         }, 250);
-                    });
-
-                    // Start auto-turning after initialization with a delay
+                    })
                     setTimeout(() => {
                         console.log('Starting auto-turn');
                         startAutoTurn();
-                    }, 2000); // Increased delay to ensure everything is loaded
-
+                    }, 2000); 
                 } catch (e) {
                     console.error("Turn.js initialization error:", e);
                     alert('Error initializing the flipbook. Please refresh the page and try again.');
