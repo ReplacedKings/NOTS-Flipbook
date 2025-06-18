@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#1a1a1a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Interactive Flipbook</title>
+    <title>NOTS LLC Flipbook</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         if (typeof jQuery === 'undefined') {
@@ -586,8 +586,8 @@
     </style>
 </head>
 <body>
-    <div class="loading">Loading Flipbook</div>
-    <div class="mobile-touch-hint">Swipe to turn pages</div>
+    <div class="loading">Флипбүүк ачааллаж байна</div>
+    <div class="mobile-touch-hint">Хуудас эргүүлэхийн тулд гулсагтун</div>
     <div class="music-control" title="Toggle Background Music"></div>
 
     <div class="flipbook-container fade-in">
@@ -714,10 +714,10 @@
             </div>
             <div class="page hard p2">
                 <div class="back-cover-content">
-                    <div class="back-cover-title">Thank You</div>
-                    <div class="back-cover-subtitle">We hope you enjoyed reading our interactive flipbook</div>
+                    <div class="back-cover-title">Баярлалаа</div>
+                    <div class="back-cover-subtitle">Бид таныг манай интерактив хуудаснаас уншихад тааламжтай байсан гэж найддаг.</div>
                     <div class="back-cover-decoration"></div>
-                    <div class="back-cover-subtitle">© 2024 All Rights Reserved</div>
+                    <div class="back-cover-subtitle">NOTS LLC© 2025 All Rights Reserved</div>
                 </div>
             </div>
         </div>
@@ -873,7 +873,7 @@
                                 console.log('Turning to next page');
                             }
                         }
-                    }, isMobile ? 10000 : 1000); // Use 10 second interval for mobile, 1 second for desktop
+                    }, isMobile ? 10000 : 1000); 
                 }
 
                 function updateLastInteraction() {
@@ -992,8 +992,7 @@
                         
                         updateLastInteraction();
                     });
-
-                    // Keyboard navigation
+                    
                     $(document).keydown(function(e) {
                         if (isTurning) return;
                         if (e.key === "ArrowRight") {
@@ -1034,12 +1033,10 @@
                             
                         }, 250);
                     });
-
-                    // Start auto-turning after initialization with a delay
                     setTimeout(() => {
                         console.log('Starting auto-turn');
                         startAutoTurn();
-                    }, 2000); // Increased delay to ensure everything is loaded
+                    }, 2000); 
 
                 } catch (e) {
                     console.error("Turn.js initialization error:", e);
@@ -1047,8 +1044,6 @@
                 }
             }
         }
-
-        // Initialize on window load
         $(window).on('load', function() {
             initializeBook();
         });
